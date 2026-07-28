@@ -39,7 +39,11 @@ function splitRelativeFilename(filename: string): string[] {
 export function createWorkspacePathModel<
   U extends UriLike<U>,
 >(uri: UriApi<U>, workspaceRoot: string) {
-  const parsedRoot = uri.file(workspaceRoot || '/workspace');
+  // URI.file delegates some native-path interpretation to the host OS.
+  // Normalize separators first so Windows drive and UNC roots retain the same
+  // URI identity when the editor bundle or its tests run on Linux.
+  const portableRoot = (workspaceRoot || '/workspace').replace(/\\/g, '/');
+  const parsedRoot = uri.file(portableRoot);
   const rootPath = normalizeRootPath(parsedRoot.path);
   const rootUri = parsedRoot.path === rootPath
     ? parsedRoot
